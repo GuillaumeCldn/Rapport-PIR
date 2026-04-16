@@ -173,3 +173,21 @@ cython_debug/
 
 #Git bundles
 *.bundle
+
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.lof
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.bcf
+*.dvi
+*.fdb_latexmk
+*.fls
+*.out.ps
+*.run.xml
+*.lot
+*.synctex(busy)
