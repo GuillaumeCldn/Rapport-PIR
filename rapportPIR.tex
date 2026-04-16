@@ -10,7 +10,8 @@
 \usepackage{amsmath}
 \usepackage{siunitx}
 \usepackage{booktabs}
-\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\newcommand{\doi}[1]{doi: \url{https://doi.org/#1}}
 \usepackage{lmodern}
 \usepackage{microtype}
 \usepackage{float}
@@ -24,15 +25,18 @@
 \newcommand{\diff}{\ensuremath{\operatorname{d}\!}}% Better diff symbol
 
 
+% ---------------------------------------------------------
+% PREAMBLE
+% ---------------------------------------------------------
 \begin{document}
 
 \begin{frontmatter}
-\title{Rapport PIR\thanksref{footnoteinfo}} 
+\title{Rapport PIR\thanksref{footnoteinfo}}
 
 \thanks[footnoteinfo]{Les auteurs remercient l'équipe du laboratoire Drones à l'ENAC et en particulier leurs encadrants Matthieu Verdoucq et Gauthier Hattenberger.}
 
-\author[First]{Ulysse Bourdic-Girard} 
-\author[Second]{Guillaume Claudon} 
+\author[First]{Ulysse Bourdic-Girard}
+\author[Second]{Guillaume Claudon}
 
 \address[First]{Ecole Nationale de l'Aviation Civile, 
    Toulouse, France (e-mail: ulysse.bourdic-girard@alumni.enac.fr).}
@@ -40,11 +44,7 @@
    Toulouse, France (e-mail: guillaume.claudon@alumni.enac.fr)}
 
 \begin{abstract}   
-These instructions give you guidelines for preparing papers for IFAC
-These instructions give you guidelines for preparing papers for IFAC
-technical meetings. Please use this document as a template to prepare
-your manuscript. For submission guidelines, follow instructions on
-paper submission system as well as the event website.
+This study presents a method of leveraging genetic programming principles to determine the flight parameters of a drone swarm controlled by a bio-inspired algorithm developed by Matthieu Verdoucq. The study explores how this method can be used to optimise the behaviour of a drone swarm in a search-and-rescue scenario.
 \end{abstract}
 
 \begin{keyword}
@@ -58,6 +58,23 @@ paper submission system as well as the event website.
 \includegraphics[width=4cm]{logo_enac.png}};
 \end{tikzpicture}
 
+% ---------------------------------------------------------
+% BODY
+% ---------------------------------------------------------
 
+\section{Introduction}
 
+Single unmanned aerial vehicles (UAVs) have proven to be exceptionally effective at a wide range of tasks, ranging from cinematography to pesticide application. Swarms of UAVs although not yet commonly used, hold great promise for future applications. One of these is search-and-rescue (SAR). In such scenarios a drone swarm has an evident numerical advantage over a single UAV. Controlling the swarm and ensuring it efficiently covers the search area is however a significant challenge. 
+
+Our study is based on the bio-inspired flocking algorithm developed by \cite{verdoucq_controbio-inspire_2024} . A swarm controlled by this algorithm exhibits emergent behaviours such as schooling (the drones flock together in an orderly fashion), swarming (the swarm remains tight-knit but the drones move erratically), or milling (the drones rotate around swarm's centre in an orderly fashion). \cite{verdoucq_bio-inspired_2022} have demonstrated these behaviours emerge from a specific set of parameters which define the equations used to control the drones.
+
+Our goal is to implement genetic programming paradigms to optimise this set of parameters to adapt the swarm's behaviour to a SAR scenario.
+
+\section{Related Work}
+
+\bibliographystyle{ifacconf}
+\bibliography{bibPIR}
+
+\appendix
+% ---------------------------------------------------------
 \end{document}
