@@ -1066,6 +1066,11 @@ INPUT /usr/local/texlive/2022/texmf-dist/fonts/tfm/public/lm/lmmi8.tfm
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/tfm/public/lm/lmmi6.tfm
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/tfm/public/lm/lmsy8.tfm
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/tfm/public/lm/lmsy6.tfm
+INPUT ./logo_enac.png
+INPUT ./logo_enac.png
+INPUT logo_enac.png
+INPUT ./logo_enac.png
+INPUT ./logo_enac.png
 INPUT /usr/local/texlive/2022/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT rapportPIR.aux
 INPUT ./rapportPIR.out
@@ -1075,6 +1080,7 @@ INPUT /usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmbx10.pfb
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmbx12.pfb
+INPUT /usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmmi12.pfb
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmmi8.pfb
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmr10.pfb
 INPUT /usr/local/texlive/2022/texmf-dist/fonts/type1/public/lm/lmr8.pfb
