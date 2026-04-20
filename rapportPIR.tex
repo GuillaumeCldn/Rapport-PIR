@@ -1,9 +1,10 @@
-\documentclass{ifacconf}
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
 
 % ---------------------------------------------------------
 % PACKAGES
 % ---------------------------------------------------------
-\usepackage{natbib}        % required for bibliography
+\usepackage{cite}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
@@ -22,6 +23,9 @@
 %\usetikzlibrary{graphs, graphdrawing}
 %\usegdlibrary{circular}
 
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
 \newcommand{\diff}{\ensuremath{\operatorname{d}\!}}% Better diff symbol
 
 
@@ -30,32 +34,33 @@
 % ---------------------------------------------------------
 \begin{document}
 
-\begin{frontmatter}
-\title{Rapport PIR\thanksref{footnoteinfo}}
+\title{Rapport PIR\thanks{This study was produced as part of the PIR-Drones minor at ENAC.}}
 
-\thanks[footnoteinfo]{The authors would like to thank the ENAC UAV Lab team and especially their academic advisors Matthieu Verdoucq and Gautier Hattenberger for their precious help and support.}
+\author{
+\IEEEauthorblockN{Ulysse Bourdic-Girard}
+\IEEEauthorblockA{\textit{Ecole Nationale de l'Aviation Civile} \\
+Toulouse, France \\
+ulysse.bourdic-girard@alumni.enac.fr}
+\and
+\IEEEauthorblockN{Guillaume Claudon}
+\IEEEauthorblockA{\textit{Ecole Nationale de l'Aviation Civile} \\
+Toulouse, France \\
+guillaume.claudon@alumni.enac.fr}
+}
 
-\author[First]{Ulysse Bourdic-Girard}
-\author[Second]{Guillaume Claudon}
-
-\address[First]{Ecole Nationale de l'Aviation Civile, 
-   Toulouse, France (e-mail: ulysse.bourdic-girard@alumni.enac.fr).}
-\address[Second]{Ecole Nationale de l'Aviation Civile, 
-   Toulouse, France (e-mail: guillaume.claudon@alumni.enac.fr)}
+\maketitle
 
 \begin{abstract}   
 This study presents a method of leveraging genetic programming principles to determine the flight parameters of a drone swarm controlled by a bio-inspired algorithm developed by Matthieu Verdoucq. The study explores how this method can be used to optimise the behaviour of a drone swarm in a search-and-rescue scenario.
 \end{abstract}
 
-\begin{keyword}
+\begin{IEEEkeywords}
 	Swarm control, Genetic programming
-\end{keyword}
-
-\end{frontmatter}
+\end{IEEEkeywords}
 
 \begin{tikzpicture}[remember picture, overlay]
-\node[anchor=north west, xshift=1cm, yshift=0cm] at (current page.north west) {
-\includegraphics[width=4cm]{logo_enac.png}};
+\node[anchor=north west, xshift=1cm, yshift=-0.5cm] at (current page.north west) {
+\includegraphics[width=3cm]{logo_enac.png}};
 \end{tikzpicture}
 
 % ---------------------------------------------------------
@@ -89,9 +94,8 @@ This means that although the paths of individual UAVs in the swarm cannot be con
 
 
 % ---------------------------------------------------------
-\bibliographystyle{ifacconf}
+\bibliographystyle{IEEEtran}
 \bibliography{bibPIR}
-\appendix
 % ---------------------------------------------------------
 
 
