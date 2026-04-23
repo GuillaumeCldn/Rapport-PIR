@@ -34,7 +34,7 @@
 % ---------------------------------------------------------
 \begin{document}
 
-\title{Genetic programming for swarm behaviour optimisation\thanks{This study was produced as part of the PIR-Drones minor at ENAC.}}
+\title{\textbf{Genetic programming for drone swarm behaviour optimisation}\thanks{This study was produced as part of the PIR-Drones minor at ENAC.}}
 
 \author{
 \IEEEauthorblockN{Ulysse Bourdic-Girard}
@@ -55,7 +55,7 @@ This study presents a method of leveraging genetic programming principles to det
 \end{abstract}
 
 \begin{IEEEkeywords}
-	Swarm control, Genetic programming
+	Collective motion, Genetic programming, 3D Flocking Algorithm, Distributed Control, Drone swarm, Unmanned Aerial Vehicle (UAV)
 \end{IEEEkeywords}
 
 % \begin{tikzpicture}[remember picture, overlay]
@@ -68,31 +68,49 @@ This study presents a method of leveraging genetic programming principles to det
 % ---------------------------------------------------------
 
 \section{Introduction}
+\label{sec:intro}
 
 Single unmanned aerial vehicles (UAVs) have proven to be exceptionally effective at a wide range of tasks, ranging from cinematography to pesticide application. Swarms of UAVs, although not yet commonly used, hold great promise for future applications. One of these is search and rescue (SAR). In such scenarios a drone swarm has an evident numerical advantage over a single UAV. Controlling the swarm and ensuring it efficiently covers the search area is however a significant challenge. 
 
-Our study is based on the bio-inspired flocking algorithm developed by \cite{verdoucq_controbio-inspire_2024} . A swarm controlled by this algorithm can exhibit emergent behaviours such as schooling (the drones flock together in an orderly fashion), swarming (the swarm remains tight-knit but the drones move erratically), or milling (the drones rotate around swarm's centre in an orderly fashion). \cite{verdoucq_bio-inspired_2022} have demonstrated these behaviours emerge from a specific set of parameters which define the equations used to control the drones.
+Our study is based on the bio-inspired flocking algorithm developed by Matthieu Verdoucq for his Ph.D. thesis \cite{verdoucq_controbio-inspire_2024}. A swarm controlled by this algorithm can exhibit emergent behaviours such as schooling (the drones flock together in an orderly fashion), swarming (the swarm remains tight-knit but the drones move erratically), or milling (the drones rotate around swarm's centre in an orderly fashion). Matthieu Verdoucq and his colleagues \cite{verdoucq_bio-inspired_2022} have demonstrated these behaviours emerge from a specific set of parameters which define the equations used to control the drones.
 
 Our goal is to implement genetic programming paradigms to optimise this set of parameters to adapt the swarm's behaviour to a SAR scenario.
 
+This scenario is modeled by dividing the area to be explored into a grid. The gathering of information is simulated by assigning a numerical freshness value to each cell, which decreases over time.
+
 \section{Related Work}
+\label{sec:RW}
 
 The work presented in this article is a continuation of the research done by Matthieu Verdoucq for his thesis, which he successfully defended in February 2024.  
 
 \subsection{Flocking algorithm}
 
-The flocking algorithm developed by \cite{verdoucq_controbio-inspire_2024} is inspired by the behaviour of a school of Rummy-nose tetra (\emph{H. Rhodostomus}). \cite{vicsek_collective_2012} were able to extract a model of social interactions between the fish which leads to emergent behaviour. Matthieu Verdoucq then adapted this model to the dynamics of drones by adding, amongst other things, a vertical component to the social interactions.
+The flocking algorithm developed by Matthieu Verdoucq\cite{verdoucq_controbio-inspire_2024} is inspired by the behaviour of a school of Rummy-nose tetra (\emph{H. Rhodostomus}). Tamás Vicsek and Anna Zafeiris \cite{vicsek_collective_2012} were able to extract a model of social interactions between the fish which leads to emergent behaviour. Matthieu Verdoucq then adapted this model to the dynamics of drones by adding, amongst other things, a vertical component to the social interactions.
 
-\cite{lei_computational_2020} have shown that Rummy-nose tetra only interact with a limited number of their neighbours. Matthieu Verdoucq implemented this in his interaction model which means the drones need only gather a limited amount of information from their social environment to display coordinated behaviour.  
+Lei et al. \cite{lei_computational_2020} have shown that Rummy-nose tetra only interact with a limited number of their neighbours. Matthieu Verdoucq implemented this in his interaction model which means the drones need only gather a limited amount of information from their social environment to display coordinated behaviour.  
 
-The emergent behaviour of the swarm is influenced by a set of parameters which determine the guidance of each individual drone in the swarm. \cite{verdoucq_flocking_2025} have shown how changing these parameters can alter the behaviour of the swarm in real-time.
+The emergent behaviour of the swarm is influenced by a set of parameters which determine the guidance of each individual drone in the swarm. Verdoucq et al. \cite{verdoucq_flocking_2025} have shown how changing these parameters can alter the behaviour of the swarm in real-time.
 
-These studies have observed that certain combinations of parameters induce the same behaviour in the swarm. Each of these specific behaviours is called a phase. The research produced by Matthieu Verdoucq for his thesis principally focuses on phases emerging from interactions between the alignment and attraction coefficients $\gamma_{\text{ali}}$ and $\gamma_{\text{att}}$. \cite{verdoucq_controbio-inspire_2024} has identified three distinct phases linked to these parameters: schooling, swarming and milling. 
+These studies have observed that certain combinations of parameters induce the same behaviour in the swarm. Each of these specific behaviours is called a phase. The research produced by Matthieu Verdoucq for his thesis principally focuses on phases emerging from interactions between the alignment and attraction coefficients $\gamma_{\text{ali}}$ and $\gamma_{\text{att}}$. Matthieu Verdoucq \cite{verdoucq_controbio-inspire_2024} has identified three distinct phases linked to these parameters: schooling, swarming and milling. 
 
 This means that although the paths of individual UAVs in the swarm cannot be controlled, their global behaviour can. However, there are many other parameters which influence the behaviour of the swarm which were not studied by Matthieu Verdoucq. The complexity of the interactions between these parameters prevents a manual tuning of this set of parameters. Genetic programming paradigms have been used to optimise drone swarm objectives and are promising means of accomplishing our objective: optimising the set of drone guidance parameters to a specific task.
 
+\subsection{Genetic programming}
 
+Genetic programming algorithms are powerful because they do not require knowing the structure of the solution to find it \cite{poli_field_2008}. The problem at hand: determining the right parameters to induce the desired behaviour in the drone swarm, is therefore very well suited to genetic programming because the interactions between the parameters and their resulting influence on the swarm's behaviour are opaque.
 
+Sefa Abraç and Tarik Veli Mumcu \cite{arbac_multi-objective_2025} explored how genetic programming can be used to reconcile two conflicting objectives: minimising mission distance and power consumption in a drone swarm. They focused specifically on mutation strategies to optimise task assignment in a drone swarm. Their study concluded displacement mutation is more computationally efficient but provides limited diversity in the chromosome population. Scramble mutation on the other hand introduces more diversity in the population, at an increased computational cost. 
+
+Our study will explore these strategies to adjust the parameters controlling the drone swarm's behaviour. 
+
+\subsection{Information gathering strategies}
+
+A genetic algorithm can only be as good as its fitness function. In the cas of a SAR scenario the fitness depends a lot on how the gathered information is shared between the drones in the swarm. 
+
+One such method is pheromone-based stygmergic coordination \cite{devaraju_connectivity-aware_2023, xuan_dual-trail_2026}. This method relies on digital pheromones being released by the drones to mark the cells they have explored. These pheromones decay and disappear over time, representing the information losing relevance as time goes on. The pheromones repel other drones, thus encouraging the swarm to fly to cells which have yet to be explored. Xuan et al. \cite{xuan_dual-trail_2026} have even explored how the use of two distinct pheromones in an under water exploration scenario: a short term pheromone to encode the recent activity of the swarm and a long term pheromone to encode the global exploration coverage. They have showed this method can achieve a very high coverage uniformity of the water column. 
+
+% ---------------------------------------------------------
+% BIBLIOGRAPHY
 % ---------------------------------------------------------
 \bibliographystyle{IEEEtran}
 \bibliography{bibPIR}
