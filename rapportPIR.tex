@@ -20,6 +20,7 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, matrix, decorations.pathreplacing, calc}
 \usepackage{wrapfig}
+\usepackage{lipsum}
 %\usetikzlibrary{graphs, graphdrawing}
 %\usegdlibrary{circular}
 
@@ -51,7 +52,7 @@ guillaume.claudon@alumni.enac.fr}
 \maketitle
 
 \begin{abstract}   
-This study presents a method of leveraging genetic programming principles to determine the flight parameters of a drone swarm controlled by a bio-inspired algorithm developed by Matthieu Verdoucq. The study explores how this method can be used to optimise the behaviour of a drone swarm in a search-and-rescue scenario.
+This study presents a method of leveraging genetic programming principles to determine the flight parameters of a drone swarm controlled by a bio-inspired algorithm developed by Matthieu Verdoucq. The study explores how this method can be used to optimise the behaviour of a drone swarm in a search-and-rescue scenario, heavily relying on parallelized GPU simulations via PyTorch.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -99,9 +100,7 @@ This means that although the paths of individual UAVs in the swarm cannot be con
 
 Genetic programming algorithms are powerful because they do not require knowing the structure of the solution to find it \cite{poli_field_2008}. The problem at hand: determining the right parameters to induce the desired behaviour in the drone swarm, is therefore very well suited to genetic programming because the interactions between the parameters and their resulting influence on the swarm's behaviour are opaque.
 
-Sefa Abraç and Tarik Veli Mumcu \cite{arbac_multi-objective_2025} explored how genetic programming can be used to reconcile two conflicting objectives: minimising mission distance and power consumption in a drone swarm. They focused specifically on mutation strategies to optimise task assignment in a drone swarm. Their study concluded displacement mutation is more computationally efficient but provides limited diversity in the chromosome population. Scramble mutation on the other hand introduces more diversity in the population, at an increased computational cost. 
-
-Our study will explore these strategies to adjust the parameters controlling the drone swarm's behaviour. 
+While some studies, such as the work by Sefa Abraç and Tarik Veli Mumcu \cite{arbac_multi-objective_2025}, focus on combinatorial mutation strategies like displacement or scramble mutations for task assignment, optimizing flight dynamics requires a continuous parameter space approach. Our study will therefore adjust the real-valued parameters controlling the drone swarm's behaviour by employing continuous real-parameter optimization techniques. Specifically, we will utilize uniform crossover operations combined with Gaussian noise mutations to ensure both the exploitation of successful traits and the exploration of new behavioural paradigms.
 
 \subsection{Information gathering strategies}
 
@@ -109,6 +108,91 @@ A genetic algorithm can only be as good as its fitness function. In the cas of a
 
 One such method is pheromone-based stygmergic coordination \cite{devaraju_connectivity-aware_2023, xuan_dual-trail_2026}. This method relies on digital pheromones being released by the drones to mark the cells they have explored. These pheromones decay and disappear over time, representing the information losing relevance as time goes on. The pheromones repel other drones, thus encouraging the swarm to fly to cells which have yet to be explored. Xuan et al. \cite{xuan_dual-trail_2026} have even explored how the use of two distinct pheromones in an under water exploration scenario: a short term pheromone to encode the recent activity of the swarm and a long term pheromone to encode the global exploration coverage. They have showed this method can achieve a very high coverage uniformity of the water column. 
 
+\clearpage
+% ---------------------------------------------------------
+\section{Emergence of Collective Behaviors: Milling and Flocking}
+\label{sec:milling}
+
+\subsection{Defining the Cost Function}
+To actively search for specific topological phases, the fitness function evaluated by the Genetic Algorithm must explicitly reward desired macroscopic states while penalizing collisions and excessive energy consumption. We define a multi-objective cost function balancing group polarization, milling momentum, and control effort.
+
+\subsection{Parameter Sweep and Scalability}
+We employ a Genetic Algorithm to discover parameter bounds that reliably trigger the milling phase. However, a set of parameters optimized for $N=10$ drones may degrade when applied to $N=30$. Through systematic parameter sweeping, we analyze the scalability of the discovered behavioral regions.
+
+\begin{figure}[htbp]
+	\centering
+	% Placeholder for correlation matrix
+	\rule{\linewidth}{5cm}
+	\caption{Correlation matrix of the swarm parameters generated during the sweeping process, highlighting parameter sensitivities for the milling phase.}
+	\label{fig:correlation}
+\end{figure}
+
+\clearpage
+% ---------------------------------------------------------
+\section{Application to Exploration and SAR Scenarios}
+\label{sec:exploration}
+
+\subsection{The Grid Coverage Problem}
+In Search and Rescue (SAR) operations, the primary objective translates mathematically to an area coverage optimization problem. The operational space is discretized into a 2D freshness grid. As drones traverse the environment, they update the freshness of the underlying cells. The swarm's performance is intrinsically linked to its ability to maximize the global freshness score over a fixed time horizon.
+
+\begin{figure}[htbp]
+	\centering
+	% Placeholder for Exploration Heatmap
+	\rule{\linewidth}{4.5cm}
+	\caption{Heatmap demonstrating the spatial coverage and freshness distribution of the drone swarm operating under GA-optimized parameters.}
+	\label{fig:heatmap}
+\end{figure}
+
+\subsection{Fitness Evaluation for Exploration}
+The exploration fitness relies on two main factors: the continuous discovery of unseen areas and the periodic revisiting of previously explored zones. This mimics the decay of information relevance in dynamic SAR environments.
+
+\clearpage
+% ---------------------------------------------------------
+\section{Distributed Information Gathering Strategies}
+\label{sec:information}
+
+A genetic algorithm can only be as good as its fitness function. In the case of a SAR scenario the fitness depends a lot on how the gathered information is shared between the drones in the swarm.
+
+\subsection{Pheromone-based Stigmergic Coordination}
+One such method is pheromone-based stigmergic coordination \cite{devaraju_connectivity-aware_2023, xuan_dual-trail_2026}. This method relies on digital pheromones being released by the drones to mark the cells they have explored. These pheromones decay and disappear over time, representing the information losing relevance as time goes on. The pheromones repel other drones, thus encouraging the swarm to fly to cells which have yet to be explored.
+
+Xuan et al. \cite{xuan_dual-trail_2026} have even explored how the use of two distinct pheromones in an exploration scenario: a short term pheromone to encode the recent activity of the swarm and a long term pheromone to encode the global exploration coverage. They have showed this method can achieve a very high coverage uniformity of the water column.
+
+In our simulation model, this stigmergic coordination is mathematically inverted and implemented through a discrete spatial ``spoilage grid''. Instead of maximizing freshness, the grid tracks spoilage, starting at a maximum value $S_{max}$ representing completely unexplored territory. As agents traverse the environment, they clear this spoilage. To account for altitude and sensor mechanics, the update is not a simple cell overwrite but a 2D Gaussian splat governed by the Inverse Square Law. The intensity and spread of the clearing effect dynamically depend on the drone's altitude ($Z$) and its Field of View (FOV). 
+
+To simulate the decaying relevance of information over time, the grid undergoes a uniform time-step spoilage accumulation governed by a multiplicative factor $\mu_{spoil}$ and an additive factor $\alpha_{spoil}$:
+$$S_{t+1}(x,y) = \min(S_{max}, S_t(x,y) \cdot \mu_{spoil} + \alpha_{spoil})$$
+This increasing spoilage acts as an attractive virtual pheromone. Agents compute an exploration gradient vector directing them towards high-spoilage areas, driving the swarm naturally to continuously revisit and explore regions.
+
+\subsection{Impact of Communication Topologies}
+To evaluate the sim-to-real gap regarding network constraints, we compare several information-sharing topologies. While a centralized `global' oracle provides theoretical maximum efficiency by granting all agents instantaneous access to the master freshness grid, real-world UAVs rely on distributed mesh networks with limited bandwidth and range.
+
+To accurately model these constraints, we implemented and evaluated three distinct communication paradigms:
+\begin{itemize}
+	\item \textbf{Global Oracle:} Agents have perfect, real-time knowledge of the entire environment's map. This serves as our theoretical upper-bound baseline.
+	\item \textbf{Local Shared Map:} Agents maintain individual, localized versions of the map. Synchronization occurs between drones using a topological approach rather than a strictly spatial one. Specifically, map data is shared unilaterally with an agent's $K$-Nearest Neighbors (with $K=2$). Furthermore, to simulate bandwidth constraints, this map synchronization is not continuous but occurs at a discrete interval of $\tau_{sync}$ ticks.
+	\item \textbf{Local Gradient:} To severely reduce communication overhead and eliminate structural dependencies, drones do not exchange any map data over the network. Instead, each drone relies strictly on its own isolated memory, locally computing a spatial gradient vector indicating the direction of highest spoilage. This vector directly influences the drone's individual navigation without being broadcasted to the swarm.
+\end{itemize}
+
+By evaluating the swarm's coverage efficiency across these three modalities, we can assess the robustness of the genetic algorithm's optimized parameters when subjected to realistic communication bottlenecks.
+
+\clearpage
+% ---------------------------------------------------------
+\section{Discussion and Conclusion}
+\label{sec:conclusion}
+
+The optimization of bio-inspired swarm parameters through genetic programming presents significant advantages for tailoring complex multi-agent systems to specific operational requirements. Our framework leveraged PyTorch tensor operations to massively parallelize the simulation environments, enabling the rapid evaluation of thousands of swarm configurations simultaneously. By optimizing a multi-objective fitness function, the Genetic Algorithm successfully isolated parameter combinations that balance robust milling behaviour, efficient area coverage, and minimal control effort.
+
+A key contribution of this study is the integration of realistic communication constraints into the evaluation pipeline. The implementation of discrete exploration modes, ranging from a centralized global oracle to decentralized local gradients and delayed map sharing, demonstrates how network limitations directly affect emergent swarm behaviors and global coverage efficiency. Furthermore, our parameter sweeping methodology highlighted the scalability challenges of the swarm, quantitatively showing how parameters optimized for a specific number of agents behave when deployed across varying swarm sizes.
+
+Future work should focus on narrowing the sim-to-real gap. While our current physics engine successfully incorporates inter-agent collision avoidance and basic kinematic updates, transitioning to a fully dynamic quadrotor simulation is the next critical step. This will require introducing sensory noise, more complex communication packet loss models, and high-fidelity aerodynamic constraints. Additionally, implementing dynamic obstacles and individual battery life constraints would further validate the applicability of these bio-inspired control algorithms in real-world Search and Rescue deployments.
+
+
+
+
+
+
+\clearpage
 % ---------------------------------------------------------
 % BIBLIOGRAPHY
 % ---------------------------------------------------------
