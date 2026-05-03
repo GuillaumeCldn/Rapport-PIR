@@ -18,7 +18,7 @@
 \usepackage{float}
 \usepackage{fmtcount}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta, matrix, decorations.pathreplacing, calc}
+\usetikzlibrary{positioning, shapes, arrows.meta, matrix, decorations.pathreplacing, calc}
 \usepackage{wrapfig}
 \usepackage{lipsum}
 %\usetikzlibrary{graphs, graphdrawing}
@@ -165,16 +165,87 @@ $$S_{t+1}(x,y) = \min(S_{max}, S_t(x,y) \cdot \mu_{spoil} + \alpha_{spoil})$$
 This increasing spoilage acts as an attractive virtual pheromone. Agents compute an exploration gradient vector directing them towards high-spoilage areas, driving the swarm naturally to continuously revisit and explore regions.
 
 \subsection{Impact of Communication Topologies}
-To evaluate the sim-to-real gap regarding network constraints, we compare several information-sharing topologies. While a centralized `global' oracle provides theoretical maximum efficiency by granting all agents instantaneous access to the master freshness grid, real-world UAVs rely on distributed mesh networks with limited bandwidth and range.
+To evaluate the sim-to-real gap regarding network constraints, we compare several information-sharing topologies. The exploration framework relies on two distinct but complementary mechanisms: the map storage and sharing strategy (\texttt{MAP\_STRATEGY}), and the navigation decision-making (\texttt{EXPLO\_STRATEGY}).
 
-To accurately model these constraints, we implemented and evaluated three distinct communication paradigms:
+While a centralized oracle provides theoretical maximum efficiency by granting all agents instantaneous access to a master freshness grid, real-world UAVs rely on distributed mesh networks with limited bandwidth and range. To accurately model these constraints, we implemented and evaluated three distinct communication paradigms for map synchronization:
+
 \begin{itemize}
-	\item \textbf{Global Oracle:} Agents have perfect, real-time knowledge of the entire environment's map. This serves as our theoretical upper-bound baseline.
-	\item \textbf{Local Shared Map:} Agents maintain individual, localized versions of the map. Synchronization occurs between drones using a topological approach rather than a strictly spatial one. Specifically, map data is shared unilaterally with an agent's $K$-Nearest Neighbors (with $K=2$). Furthermore, to simulate bandwidth constraints, this map synchronization is not continuous but occurs at a discrete interval of $\tau_{sync}$ ticks.
-	\item \textbf{Local Gradient:} To severely reduce communication overhead and eliminate structural dependencies, drones do not exchange any map data over the network. Instead, each drone relies strictly on its own isolated memory, locally computing a spatial gradient vector indicating the direction of highest spoilage. This vector directly influences the drone's individual navigation without being broadcasted to the swarm.
+	\item \textbf{Global Oracle (\texttt{global}):} Agents have perfect, real-time knowledge of the entire environment's map. Every drone updates and reads from a single, centralized tensor. This serves as our theoretical upper-bound baseline.
+	
+	\vspace{0.2cm}
+	\begin{center}
+		\begin{tikzpicture}[
+			drone/.style={circle, draw=black, fill=blue!10, thick, minimum size=0.8cm, font=\sffamily},
+			oracle/.style={rectangle, draw=black, fill=red!10, thick, rounded corners, minimum width=2.5cm, minimum height=1cm, font=\bfseries\sffamily},
+			comm/.style={<->, >=Stealth, thick, dashed, draw=black!70}
+			]
+			\node[oracle] (master) {Master Grid};
+			\node[drone] (d1) [above left=0.5cm and 1cm of master] {UAV$_1$};
+			\node[drone] (d2) [above right=0.5cm and 1cm of master] {UAV$_2$};
+			\node[drone] (d3) [below=0.8cm of master] {UAV$_3$};
+			
+			\draw[comm] (master) -- (d1);
+			\draw[comm] (master) -- (d2);
+			\draw[comm] (master) -- (d3);
+		\end{tikzpicture}
+	\end{center}
+	\vspace{0.2cm}
+	
+	\item \textbf{Local Shared Map (\texttt{local\_shared}):} Agents maintain individual, localized versions of the map. Synchronization occurs between drones using a topological approach rather than a strictly spatial one. Specifically, map data is shared unilaterally with an agent's $K$-Nearest Neighbors (e.g., $K=2$). Furthermore, to simulate bandwidth constraints, this map synchronization is not continuous but occurs at a discrete interval of $\tau_{sync}$ ticks (e.g., \texttt{REFRESH\_MAP\_TICKS} $= 50$).
+	
+	\vspace{0.2cm}
+	\begin{center}
+		\begin{tikzpicture}[
+			node distance=2cm,
+			drone/.style={circle, draw=black, fill=blue!10, thick, minimum size=0.8cm, font=\sffamily},
+			map/.style={rectangle, draw=black!60, fill=green!10, minimum width=1.2cm, minimum height=0.5cm, font=\scriptsize\sffamily},
+			comm/.style={->, >=Stealth, thick, draw=blue!70}
+			]
+			\node[drone] (d1) {UAV$_1$};
+			\node[map] (m1) [below=0.1cm of d1] {Local Map$_1$};
+			
+			\node[drone] (d2) [right=of d1] {UAV$_2$};
+			\node[map] (m2) [below=0.1cm of d2] {Local Map$_2$};
+			
+			\node[drone] (d3) [right=of d2] {UAV$_3$};
+			\node[map] (m3) [below=0.1cm of d3] {Local Map$_3$};
+			
+			% D1 sharing to K=2 neighbors
+			\draw[comm] (d1) to[bend left=30] node[midway, above, font=\scriptsize\sffamily, text=black!80] {Sync to $K=2$} (d2);
+			\draw[comm] (d1) to[bend left=45] (d3);
+			
+			% D2 sharing to K=2 neighbors
+			\draw[comm] (d2) to[bend left=30] (d1);
+			\draw[comm] (d2) to[bend left=30] (d3);
+		\end{tikzpicture}
+	\end{center}
+	\vspace{0.2cm}
+	
+	\item \textbf{Local Individual Map (\texttt{local\_individual}):} To severely reduce communication overhead and eliminate structural dependencies, drones do not exchange any map data over the network. Instead, each drone relies strictly on its own isolated memory grid, which is updated solely by its own field of view (FOV).
+	
+	\vspace{0.2cm}
+	\begin{center}
+		\begin{tikzpicture}[
+			drone/.style={circle, draw=black, fill=blue!10, thick, minimum size=0.8cm, font=\sffamily},
+			gridline/.style={draw=black!20, thin},
+			sensor/.style={->, >=Stealth, thick, draw=orange!80, dashed}
+			]
+			% Local grid background
+			\draw[gridline, step=0.4cm] (-1.6,-1.2) grid (1.6,1.2);
+			
+			\node[drone] (d1) at (0,0) {UAV$_1$};
+			
+			% Sensor updating local map only
+			\draw[sensor] (d1) -- (0.8, -0.6) node[midway, below left, text=orange!80, font=\scriptsize\sffamily] {};
+			\fill[orange!20, opacity=0.7] (0.4, -0.8) rectangle (1.2, -0.4);
+			
+			\node[font=\scriptsize\sffamily, text=black!70] at (0, -1.5) {Isolated Local Memory Grid};
+		\end{tikzpicture}
+	\end{center}
+	\vspace{0.2cm}
 \end{itemize}
 
-By evaluating the swarm's coverage efficiency across these three modalities, we can assess the robustness of the genetic algorithm's optimized parameters when subjected to realistic communication bottlenecks.
+Regardless of the chosen mapping topology, the actual navigation of the swarm is driven by a local gradient descent approach (\texttt{EXPLO\_STRATEGY = "local\_gradient"}). Each drone computes a spatial gradient vector over its currently available map, indicating the direction of highest spoilage. This vector directly influences the drone's individual yaw command. By evaluating the swarm's coverage efficiency across these three modalities, we can assess the robustness of the genetic algorithm's optimized parameters when subjected to realistic communication bottlenecks.
 
 \clearpage
 % ---------------------------------------------------------
