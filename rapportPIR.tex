@@ -11,6 +11,7 @@
 \usepackage{amsmath}
 \usepackage{siunitx}
 \usepackage{booktabs}
+\usepackage{bbm}
 \usepackage{url}
 \newcommand{\doi}[1]{doi: \url{https://doi.org/#1}}
 \usepackage{lmodern}
@@ -106,7 +107,8 @@ While some studies, such as the work by Sefa Abraç and Tarik Veli Mumcu \cite{a
 
 A genetic algorithm can only be as good as its fitness function. In the cas of a SAR scenario the fitness depends a lot on how the gathered information is shared between the drones in the swarm. 
 
-One such method is pheromone-based stygmergic coordination \cite{devaraju_connectivity-aware_2023, xuan_dual-trail_2026}. This method relies on digital pheromones being released by the drones to mark the cells they have explored. These pheromones decay and disappear over time, representing the information losing relevance as time goes on. The pheromones repel other drones, thus encouraging the swarm to fly to cells which have yet to be explored. Xuan et al. \cite{xuan_dual-trail_2026} have even explored how the use of two distinct pheromones in an under water exploration scenario: a short term pheromone to encode the recent activity of the swarm and a long term pheromone to encode the global exploration coverage. They have showed this method can achieve a very high coverage uniformity of the water column. 
+One such method is pheromone-based stygmergic coordination \cite{devaraju_connectivity-aware_2023, xuan_dual-trail_2026}. This method relies on digital pheromones being released by the drones to mark the cells they have explored. These pheromones decay and disappear over time, representing the information losing relevance as time goes on. The pheromones repel other drones, thus e:w
+ncouraging the swarm to fly to cells which have yet to be explored. Xuan et al. \cite{xuan_dual-trail_2026} have even explored how the use of two distinct pheromones in an under water exploration scenario: a short term pheromone to encode the recent activity of the swarm and a long term pheromone to encode the global exploration coverage. They have showed this method can achieve a very high coverage uniformity of the water column. 
 
 \clearpage
 % ---------------------------------------------------------
@@ -114,7 +116,105 @@ One such method is pheromone-based stygmergic coordination \cite{devaraju_connec
 \label{sec:milling}
 
 \subsection{Defining the Cost Function}
-To actively search for specific topological phases, the fitness function evaluated by the Genetic Algorithm must explicitly reward desired macroscopic states while penalizing collisions and excessive energy consumption. We define a multi-objective cost function balancing group polarization, milling momentum, and control effort.
+To actively search for specific topological phases, the fitness function evaluated by the Genetic Algorithm must explicitly reward desired macroscopic states while penalizing collisions and excessive energy consumption. We define a multi-objective cost function balancing group polarization, milling momentum, and control effort. 
+
+\begin{itemize}
+	\item Let $N$ represent the number of drones in the simulation.
+	\item Let $p_i = (x_i, y_i)$ represent the position of drone number i.
+	\item Let $\phi_i$ represent the heading of drone number i.
+	\item Let $v_i$ represent the speed of drone number i.
+\end{itemize}
+
+
+The cost of the effort cost $c_{\text{effort}}$ is calculated as follows:
+
+\begin{equation}
+	c_{\text{effort}} = \sum_{i = 1}^{N} |\dot{\phi_i} |
+\end{equation}
+
+The center of the swarm $B$ is determined:
+\begin{equation}
+	B = \frac{1}{N} \sum_{i=1}^{N} p_i \\
+\end{equation}
+
+The distance of each drone to this center is calculated as such:
+\begin{equation}
+	d_i = \| p_i - B \|_2
+\end{equation}
+
+The cost of the dispersion cost $c_{\text{disp}}$ is calculated as follows:
+\begin{equation}
+	c_{\text{disp}} =  \left| \left( \frac{1}{N} \sum_{i=1}^{N} d_i \right) - 5.0 \right|
+\end{equation}
+
+The polarisation parameter is determined as follows:
+\begin{equation}
+	P = \sqrt{\left( \frac{1}{N} \sum_{i=1}^{N} \cos \phi_i \right)^2 + \left( \frac{1}{N} \sum_{i=1}^{N} \sin \phi_i \right)^2}
+\end{equation}
+
+This allows for the calculation of the polarisation cost $c_{\text{pol}}$:
+\begin{equation}
+	c_{\text{pol}} = (1 - P)
+\end{equation}
+
+To calculate the collision cost $c_{\text{coll}}$, we first determine the distance between drones:
+\begin{equation}
+	d_{ij} = \| p_i - p_j \|_2
+\end{equation}
+
+Thus:
+\begin{equation}
+	c_{\text{coll}} = \frac{1}{2} \sum_{i=1}^{N} \sum_{\substack{j=1 \\ j \neq i}}^{N} \mathbbm{1}_{(d_{ij} < d_{\text{coll}})}
+\end{equation}
+
+To compute the milling cost $c_{\text{mill}}$, we first compute the speed vector $V_i$ for each drone:
+\begin{equation}
+	V_i = \begin{pmatrix} v_i \cos \phi_i \\ v_i \sin \phi_i \end{pmatrix}
+\end{equation}
+
+Then we determine the average speed of the swarm:
+\begin{equation}
+	\bar{V} = \frac{1}{N} \sum_{i=1}^{N} V_i
+\end{equation}
+
+Thus follows the centred speed:
+\begin{equation}
+\Delta v_i = v_i - \bar{V}
+\end{equation}
+
+And the centred position:
+\begin{equation}
+\Delta p_i = p_i - B
+\end{equation}
+
+These are used to determine the angle of the postion to the swarm's centre:
+\begin{equation}
+	\theta_i = \text{atan2}(\Delta p_{i, y}, \Delta p_{i, x})
+\end{equation}
+
+And the angle of the speed vector to the swarm's centre:
+\begin{equation}
+\phi_{v, i} = \text{atan2}(\Delta v_{i, y}, \Delta v_{i, x})
+\end{equation}
+
+These then allow for the computation of the milling cost:
+\begin{equation}
+	c_{\text{mill}} = \left| \frac{1}{N} \sum_{i=1}^{N} \sin(\theta_i - \phi_{v, i}) \right|
+\end{equation}
+
+
+The final cost $c_{\text{tot}}$ function is the sum of all of these costs, to which the exploration cost can be added if relevant (this cost will be detailed in a further section). Each cost $c_x$ is associated to a weight $W_x$ which is used to tune the relative influences of these parameters in the final cost function:
+\begin{align}
+	c_{\text{tot}} = ~& c_{\text{effort}} \times W_{\text{effort}} \nonumber \\
+				   &+ c_{\text{disp}} \times W_{\text{disp}} \nonumber\\
+				   &+ c_{\text{pol}} \times W_{\text{pol}} \nonumber\\
+				   &+ c_{\text{coll}} \times W_{\text{coll}} \nonumber\\
+				   &+ c_{\text{mill}} \times W_{\text{mill}} \nonumber\\
+				   &+ c_{\text{explo}} \times W_{\text{explo}}
+\end{align}
+
+
+
 
 \subsection{Parameter Sweep and Scalability}
 We employ a Genetic Algorithm to discover parameter bounds that reliably trigger the milling phase. However, a set of parameters optimized for $N=10$ drones may degrade when applied to $N=30$. Through systematic parameter sweeping, we analyze the scalability of the discovered behavioral regions.
