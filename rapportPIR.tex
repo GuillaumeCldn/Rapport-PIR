@@ -22,6 +22,7 @@
 \usetikzlibrary{positioning, shapes, arrows.meta, matrix, decorations.pathreplacing, calc}
 \usepackage{wrapfig}
 \usepackage{lipsum}
+\usepackage{multicol}
 %\usetikzlibrary{graphs, graphdrawing}
 %\usegdlibrary{circular}
 
@@ -107,22 +108,23 @@ While some studies, such as the work by Sefa Abraç and Tarik Veli Mumcu \cite{a
 
 A genetic algorithm can only be as good as its fitness function. In the cas of a SAR scenario the fitness depends a lot on how the gathered information is shared between the drones in the swarm. 
 
-One such method is pheromone-based stygmergic coordination \cite{devaraju_connectivity-aware_2023, xuan_dual-trail_2026}. This method relies on digital pheromones being released by the drones to mark the cells they have explored. These pheromones decay and disappear over time, representing the information losing relevance as time goes on. The pheromones repel other drones, thus e:w
-ncouraging the swarm to fly to cells which have yet to be explored. Xuan et al. \cite{xuan_dual-trail_2026} have even explored how the use of two distinct pheromones in an under water exploration scenario: a short term pheromone to encode the recent activity of the swarm and a long term pheromone to encode the global exploration coverage. They have showed this method can achieve a very high coverage uniformity of the water column. 
+One such method is pheromone-based stygmergic coordination \cite{devaraju_connectivity-aware_2023, xuan_dual-trail_2026}. This method relies on digital pheromones being released by the drones to mark the cells they have explored. These pheromones decay and disappear over time, representing the information losing relevance as time goes on. The pheromones repel other drones, thus encouraging the swarm to fly to cells which have yet to be explored. Xuan et al. \cite{xuan_dual-trail_2026} have even explored how the use of two distinct pheromones in an under water exploration scenario: a short term pheromone to encode the recent activity of the swarm and a long term pheromone to encode the global exploration coverage. They have showed this method can achieve a very high coverage uniformity of the water column. 
 
 \clearpage
 % ---------------------------------------------------------
-\section{Emergence of Collective Behaviors: Milling and Flocking}
+\section{Emergence of Collective Behaviors: Milling}
 \label{sec:milling}
 
 \subsection{Defining the Cost Function}
 To actively search for specific topological phases, the fitness function evaluated by the Genetic Algorithm must explicitly reward desired macroscopic states while penalizing collisions and excessive energy consumption. We define a multi-objective cost function balancing group polarization, milling momentum, and control effort. 
 
 \begin{itemize}
-	\item Let $N$ represent the number of drones in the simulation.
-	\item Let $p_i = (x_i, y_i)$ represent the position of drone number i.
-	\item Let $\phi_i$ represent the heading of drone number i.
-	\item Let $v_i$ represent the speed of drone number i.
+	\begin{multicols}{2}
+		\item $N$: number of drones
+		\item $p_i = (x_i, y_i)$: position
+		\item $\phi_i$: heading
+		\item $v_i$: speed
+	\end{multicols}
 \end{itemize}
 
 
@@ -202,30 +204,56 @@ These then allow for the computation of the milling cost:
 	c_{\text{mill}} = \left| \frac{1}{N} \sum_{i=1}^{N} \sin(\theta_i - \phi_{v, i}) \right|
 \end{equation}
 
+To ensure the stability of the emergent milling phases and prevent the swarm from drifting—a behavior frequently observed during the optimization of unconstrained circular motion—we introduce a stationary cost $c_{\text{stationary}}$. This cost penalizes the velocity of the swarm's barycenter:
+\begin{equation}
+	c_{\text{stationary}} = \|\bar{V}\|_2
+\end{equation}
 
 The final cost $c_{\text{tot}}$ function is the sum of all of these costs, to which the exploration cost can be added if relevant (this cost will be detailed in a further section). Each cost $c_x$ is associated to a weight $W_x$ which is used to tune the relative influences of these parameters in the final cost function:
 \begin{align}
-	c_{\text{tot}} = ~& c_{\text{effort}} \times W_{\text{effort}} \nonumber \\
-				   &+ c_{\text{disp}} \times W_{\text{disp}} \nonumber\\
-				   &+ c_{\text{pol}} \times W_{\text{pol}} \nonumber\\
-				   &+ c_{\text{coll}} \times W_{\text{coll}} \nonumber\\
-				   &+ c_{\text{mill}} \times W_{\text{mill}} \nonumber\\
-				   &+ c_{\text{explo}} \times W_{\text{explo}}
+	c_{\text{tot}} &= c_{\text{effort}} \times W_{\text{effort}} \nonumber \\
+	&\quad + c_{\text{disp}} \times W_{\text{disp}} \nonumber \\
+	&\quad + c_{\text{pol}} \times W_{\text{pol}} \nonumber \\
+	&\quad + c_{\text{coll}} \times W_{\text{coll}} \nonumber \\
+	&\quad + c_{\text{mill}} \times W_{\text{mill}} \nonumber \\
+	&\quad + c_{\text{stationary}} \times W_{\text{stationary}} \nonumber \\
+	&\quad + c_{\text{explo}} \times W_{\text{explo}}
 \end{align}
 
 
-
-
-\subsection{Parameter Sweep and Scalability}
-We employ a Genetic Algorithm to discover parameter bounds that reliably trigger the milling phase. However, a set of parameters optimized for $N=10$ drones may degrade when applied to $N=30$. Through systematic parameter sweeping, we analyze the scalability of the discovered behavioral regions.
+With only a pure milling weight on the cost function, by minimizing $c_{\text{tot}}$, the Genetic Algorithm successfully identified regions in the parameter space that organically lead to a stable milling formation. Figure \ref{fig:milling_success} illustrates a typical simulation output where the swarm converges into a continuous vortex, demonstrating the efficacy of our multi-objective cost function in isolating this specific topological phase.
 
 \begin{figure}[htbp]
 	\centering
-	% Placeholder for correlation matrix
-	\rule{\linewidth}{5cm}
-	\caption{Correlation matrix of the swarm parameters generated during the sweeping process, highlighting parameter sensitivities for the milling phase.}
+	\includegraphics[width=0.85\linewidth]{milling_successful.png}
+	\caption{Visual representation of a successful milling phase emerged from the GA optimization. The drones (blue vectors) exhibit stable circular motion around the swarm's barycenter while maintaining strict collision avoidance constraints.}
+	\label{fig:milling_success}
+\end{figure}
+
+\subsection{Parameter Sweep and Scalability}
+
+The emergence of a stable milling phase is notoriously difficult to achieve through manual tuning due to the highly non-linear dynamics and cascading interactions between the bio-inspired control parameters. Therefore, successfully isolating the parameter manifold that consistently triggers milling serves as a fundamental proof of concept for our Genetic Algorithm (GA). It demonstrates the algorithm's capability to navigate a complex, multi-dimensional continuous search space to optimize macroscopic swarm behaviour before applying it to more complex operational scenarios.
+
+We initially employed the GA to discover parameter bounds that reliably trigger the milling phase for a fixed population. However, a set of parameters optimized for $N=10$ drones may degrade, shear, or cause the vortex to collapse entirely when applied to $N=30$. To ensure the robustness of our model, we conducted a systematic parameter sweep across varying swarm sizes ($N \in \{10, 15, 20, 25, 30\}$) to analyze the scalability of the discovered behavioral regions. To avoid statistical bias from generational cloning, only the absolute best, unique individual from each optimization run was extracted for analysis.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=\linewidth]{corr_matrix_2026-05-14_14-21-28.png}
+	\caption{Parameter correlation matrix generated from the unique global optimums across all tested swarm sizes ($N=10$ to $30$). The diverging color scale highlights the true macroscopic scaling laws and physical trade-offs required to sustain the milling phase at any scale.}
 	\label{fig:correlation}
 \end{figure}
+
+The resulting correlation matrix (Fig. \ref{fig:correlation}) filters the dataset to include only the active genes, revealing the underlying physical rules the GA had to discover to maintain the vortex formation at scale. The matrix highlights three critical dynamic dependencies:
+
+\begin{itemize}
+	\item \textbf{Kinematic Synchronization Scaling ($r = 0.96$):} A near-perfect positive correlation exists between the social acceleration multiplier ($y_{\text{acc}}$) and the nominal velocity distance ($d0_{\text{v}}$). The algorithm discovered a fundamental scaling law for speed synchronization: as the swarm's scale changes, a larger zone of speed influence must be compensated by a proportionally stronger acceleration authority. This ensures that agents on the outer edge of a larger milling ring can accelerate rapidly enough to keep pace with the inner agents.
+	
+	\item \textbf{Alignment Field Proportionality ($r = 0.92$):} The matrix shows a very strong positive correlation between the alignment strength ($y_{\text{ali}}$) and the core alignment distance ($d0_{\text{ali}}$). If the GA selects a high gain for heading alignment, it must simultaneously widen the geometric zone where this force applies, preventing high-frequency heading oscillations that would destroy the smooth circular flow.
+	
+	\item \textbf{The Heading vs. Velocity Priority Trade-off ($r = -0.94$):} There is a severe negative correlation between the acceleration length scale ($l_{\text{acc}}$) and the alignment strength ($y_{\text{ali}}$). The GA identified that the swarm cannot rely heavily on both heading alignment and distant velocity synchronization simultaneously. If the swarm prioritizes matching headings, it must restrict the radius of speed adjustments to prevent conflicting command inputs that could fracture the swarm.
+\end{itemize}
+
+Ultimately, this parameter sweep demonstrates that the scalability of the bio-inspired swarm does not rely on a single, rigid set of parameters, but rather on a multidimensional manifold of ratios. By identifying these strict relational constraints, the genetic programming approach validated its efficiency in optimizing distributed flight dynamics.
 
 \clearpage
 % ---------------------------------------------------------
