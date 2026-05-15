@@ -373,7 +373,39 @@ While a centralized oracle provides theoretical maximum efficiency by granting a
 	\vspace{0.2cm}
 \end{itemize}
 
-Regardless of the chosen mapping topology, the actual navigation of the swarm is driven by a local gradient descent approach (\texttt{EXPLO\_STRATEGY = "local\_gradient"}). Each drone computes a spatial gradient vector over its currently available map, indicating the direction of highest spoilage. This vector directly influences the drone's individual yaw command. By evaluating the swarm's coverage efficiency across these three modalities, we can assess the robustness of the genetic algorithm's optimized parameters when subjected to realistic communication bottlenecks.
+\subsection{Experimental Results and Comparative Analysis}
+To evaluate these topologies, we conducted a systematic parameter sweep crossing the mapping strategies with two decision policies: \texttt{local\_gradient} (gradient descent on spoilage) and \texttt{global\_best} (greedy targeting of the absolute maximum). The cost function minimizes $C_{total}$ with weights $W_{\text{coll}} = 500$ (collision penalty) and $W_{\text{explo}} = -50$ (coverage reward).
+
+\begin{table}[htbp]
+	\caption{Performance metrics across communication and decision strategies.}
+	\label{tab:results}
+	\centering
+	\begin{tabular}{llcc}
+		\toprule
+		\textbf{Map Strategy} & \textbf{Decision Policy} & \textbf{Total Cost} $\downarrow$ & \textbf{Coverage (\%)} $\uparrow$ \\ 
+		\midrule
+		\texttt{global} & \texttt{global\_best} & \textbf{-134,454} & 89.56\% \\
+		\texttt{global} & \texttt{local\_gradient} & -133,718 & 91.14\% \\
+		\texttt{local\_shared} & \texttt{global\_best} & -130,901 & 87.97\% \\
+		\texttt{local\_shared} & \texttt{local\_gradient} & -127,638 & 89.56\% \\
+		\texttt{local\_individual} & \texttt{global\_best} & -121,514 & \textbf{93.35\%} \\
+		\texttt{local\_individual} & \texttt{local\_gradient} & -120,901 & 71.52\% \\ 
+		\bottomrule
+	\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\linewidth]{bar_comparison_Coverage_(pct).png}
+	\caption{Comparison of area coverage across topologies. Distributed sharing (\texttt{local\_shared}) maintains efficiency close to the global oracle despite bandwidth constraints.}
+	\label{fig:coverage_results}
+\end{figure}
+
+\subsubsection{Analysis of the Isolation Paradox}
+The results in Table~\ref{tab:results} reveal that the highest raw coverage (\textbf{93.35\%}) is achieved in total isolation (\texttt{local\_individual}). However, this configuration yields the worst global cost (-121,514). Without communication, drones target global maxima independently, leading to a "chaotic explosion" of the swarm. While this covers more area, the lack of coordination causes frequent trajectory intersections. Given that $W_{\text{coll}}$ is ten times higher than $W_{\text{explo}}$, the resulting collision penalties negate the exploration gains.
+
+\subsubsection{Network Resilience and Bio-inspired Fluidity}
+The \texttt{local\_shared} topology achieves \textbf{89.56\%} coverage, performing remarkably close to the global oracle. Coupled with \texttt{local\_gradient}, the swarm maintains a fluid, ameba-like motion that minimizes collision risks. This validates that asynchronous, low-bandwidth sharing of localized maps is sufficient to successfully propagate stigmergic information and maintain efficient Search and Rescue operations in network-constrained environments.
 
 \clearpage
 % ---------------------------------------------------------
