@@ -104,6 +104,8 @@ Genetic programming algorithms are powerful because they do not require knowing 
 
 While some studies, such as the work by Sefa Abraç and Tarik Veli Mumcu \cite{arbac_multi-objective_2025}, focus on combinatorial mutation strategies like displacement or scramble mutations for task assignment, optimizing flight dynamics requires a continuous parameter space approach. Our study will therefore adjust the real-valued parameters controlling the drone swarm's behaviour by employing continuous real-parameter optimization techniques. Specifically, we will utilize uniform crossover operations combined with Gaussian noise mutations to ensure both the exploitation of successful traits and the exploration of new behavioural paradigms.
 
+Another approach consists of using genetic programming to autonomously design the high-level logical architecture of a swarm. For instance, the GEESE-BT algorithm developed by Neupane and Goodrich \cite{neupane_learning_2019} utilizes multi-agent Grammatical Evolution to map genetic binary strings directly into functional, executable Behavior Trees. By embedding primitive swarm behaviors within a context-free grammar, their framework successfully evolves decentralized, discrete action controllers for complex spatial tasks like foraging and nest maintenance without requiring manually engineered state machines. However, while this structural evolution is highly effective for high-level spatial decision-making, it fundamentally operates in a discrete search space rather than the continuous domain needed for precise physical maneuvering.
+
 \subsection{Information gathering strategies}
 
 A genetic algorithm can only be as good as its fitness function. In the cas of a SAR scenario the fitness depends a lot on how the gathered information is shared between the drones in the swarm. 
@@ -261,18 +263,22 @@ Ultimately, this parameter sweep demonstrates that the scalability of the bio-in
 \label{sec:exploration}
 
 \subsection{The Grid Coverage Problem}
-In Search and Rescue (SAR) operations, the primary objective translates mathematically to an area coverage optimization problem. The operational space is discretized into a 2D freshness grid. As drones traverse the environment, they update the freshness of the underlying cells. The swarm's performance is intrinsically linked to its ability to maximize the global freshness score over a fixed time horizon.
+In Search and Rescue (SAR) operations, the primary objective translates mathematically to an area coverage optimization problem. The operational space is discretized into a 2D grid. The swarm's performance is intrinsically linked to its ability to explore the grid completely. Another important aspect of SAR scenarios is that the target might not stay in the same place during the whole scenario. This means that drones must overfly each cell of the grid repeatedly to ensure they extract as much information as possible from the environment.
 
 \begin{figure}[htbp]
 	\centering
-	% Placeholder for Exploration Heatmap
-	\rule{\linewidth}{4.5cm}
-	\caption{Heatmap demonstrating the spatial coverage and freshness distribution of the drone swarm operating under GA-optimized parameters.}
+	% \rule{\linewidth}{4.5cm}
+	\includegraphics[width=0.85\linewidth]{explo_visualisation.png}
+	\caption{Heatmap demonstrating the spatial coverage of the drone swarm operating under GA-optimized parameters.}
 	\label{fig:heatmap}
 \end{figure}
 
 \subsection{Fitness Evaluation for Exploration}
-The exploration fitness relies on two main factors: the continuous discovery of unseen areas and the periodic revisiting of previously explored zones. This mimics the decay of information relevance in dynamic SAR environments.
+The exploration fitness relies on two main factors: the continuous discovery of unseen areas and the periodic revisiting of previously explored zones. This mimics the decay of information relevant in dynamic SAR environments. The amount of information known about the cell is described by a numerical value called freshness. At the beginning of the scenario, each cell has a minimal freshness. As drones traverse the environment, they increase the freshness of the cells they overfly. To represent the information going stale over time, the freshness decreases (at first slowly, then faster as time passes).
+
+The quality of the information gathered from a flight at low altitude is naturally better than that of the information gathered from a high altitude flight. However flying at higher altitude means the camera can see a wider area and thus gather more information. This relationship is taken into account by the fitness calculation. Each drone can "see" in a cone below them. If they fly high, they increase the freshness of a large amount of cells by a small amount. If they fly lower, they increase the freshness of a few cell by a larger amount.
+
+The coverage of the grid is measured by counting the number of cells which are deemed "explored". For this to be the case the cell's freshness must exceed \SI{10}{\%} of the maximum freshness value. The coverage is then normalised by the total amount of cells in the grid. In the case where each drone has its own map of the grid (see section \ref{sec:information}), a global grid is constructed with the best freshness found a cross the individual grids. This global grid is then used to calculate the coverage. The exploration cost $c_{\text{explo}}$ is this measure of the grid's coverage.
 
 \clearpage
 % ---------------------------------------------------------
