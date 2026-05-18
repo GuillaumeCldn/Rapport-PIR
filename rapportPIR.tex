@@ -114,7 +114,6 @@ A genetic algorithm can only be as good as its fitness function. In the cas of a
 
 One such method is pheromone-based stygmergic coordination \cite{devaraju_connectivity-aware_2023, xuan_dual-trail_2026}. This method relies on digital pheromones being released by the drones to mark the cells they have explored. These pheromones decay and disappear over time, representing the information losing relevance as time goes on. The pheromones repel other drones, thus encouraging the swarm to fly to cells which have yet to be explored. Xuan et al. \cite{xuan_dual-trail_2026} have even explored how the use of two distinct pheromones in an under water exploration scenario: a short term pheromone to encode the recent activity of the swarm and a long term pheromone to encode the global exploration coverage. They have showed this method can achieve a very high coverage uniformity of the water column. 
 
-\clearpage
 % ---------------------------------------------------------
 \section{Our approach to genetic programming}
 \label{GP}
@@ -178,7 +177,6 @@ Following evaluation, the algorithm applies evolutionary operators to generate t
 \end{equation}
 Second, a global mutation operator introduces a large parameter jump that completely replaces genes with new random values, applied with a fixed probability of 5\% across the entire generation. This ensures the population can abruptly escape local minima in the complex, non-linear fitness landscape. Finally, a strict elitism mechanism is enforced: the single absolute best-performing parameter set is preserved entirely untouched and injected directly into the first slot of the subsequent generation, securing monotonic optimization progress throughout the training cycle.
 
-\clearpage
 % ---------------------------------------------------------
 \section{Emergence of Collective Behaviors: Milling}
 \label{sec:milling}
@@ -323,7 +321,6 @@ The resulting correlation matrix (Fig. \ref{fig:correlation}) filters the datase
 
 Ultimately, this parameter sweep demonstrates that the scalability of the bio-inspired swarm does not rely on a single, rigid set of parameters, but rather on a multidimensional manifold of ratios. By identifying these strict relational constraints, the genetic programming approach validated its efficiency in optimizing distributed flight dynamics.
 
-\clearpage
 % ---------------------------------------------------------
 \section{Application to Exploration and SAR Scenarios}
 \label{sec:exploration}
@@ -346,7 +343,6 @@ The quality of the information gathered from a flight at low altitude is natural
 
 The coverage of the grid is measured by counting the number of cells which are deemed "explored". For this to be the case the cell's freshness must exceed \SI{10}{\%} of the maximum freshness value. The coverage is then normalised by the total amount of cells in the grid. In the case where each drone has its own map of the grid (see section \ref{sec:information}), a global grid is constructed with the best freshness found a cross the individual grids. This global grid is then used to calculate the coverage. The exploration cost $c_{\text{explo}}$ is this measure of the grid's coverage.
 
-\clearpage
 % ---------------------------------------------------------
 \section{Distributed Information Gathering Strategies}
 \label{sec:information}
@@ -479,7 +475,6 @@ The results in Table~\ref{tab:results} reveal that the highest raw coverage (\te
 \subsubsection{Network Resilience and Bio-inspired Fluidity}
 The \texttt{local\_shared} topology achieves \textbf{89.56\%} coverage, performing remarkably close to the global oracle. Coupled with \texttt{local\_gradient}, the swarm maintains a fluid, ameba-like motion that minimizes collision risks. This validates that asynchronous, low-bandwidth sharing of localized maps is sufficient to successfully propagate stigmergic information and maintain efficient Search and Rescue operations in network-constrained environments. Indeed, comparable performance is achieved between the two map-sharing configurations, despite the distributed approach requiring less than a tenth of the network bandwidth
 
-\clearpage
 % ---------------------------------------------------------
 \section{Discussion and Conclusion}
 \label{sec:conclusion}
@@ -495,7 +490,6 @@ Future work must focus on further narrowing the sim-to-real gap. While the curre
 
 
 
-\clearpage
 % ---------------------------------------------------------
 % BIBLIOGRAPHY
 % ---------------------------------------------------------
