@@ -343,6 +343,7 @@ The quality of the information gathered from a flight at low altitude is natural
 
 The coverage of the grid is measured by counting the number of cells which are deemed "explored". For this to be the case the cell's freshness must exceed \SI{10}{\%} of the maximum freshness value. The coverage is then normalised by the total amount of cells in the grid. In the case where each drone has its own map of the grid (see section \ref{sec:information}), a global grid is constructed with the best freshness found a cross the individual grids. This global grid is then used to calculate the coverage. The exploration cost $c_{\text{explo}}$ is this measure of the grid's coverage.
 
+\clearpage
 % ---------------------------------------------------------
 \section{Distributed Information Gathering Strategies}
 \label{sec:information}
@@ -475,6 +476,7 @@ The results in Table~\ref{tab:results} reveal that the highest raw coverage (\te
 \subsubsection{Network Resilience and Bio-inspired Fluidity}
 The \texttt{local\_shared} topology achieves \textbf{89.56\%} coverage, performing remarkably close to the global oracle. Coupled with \texttt{local\_gradient}, the swarm maintains a fluid, ameba-like motion that minimizes collision risks. This validates that asynchronous, low-bandwidth sharing of localized maps is sufficient to successfully propagate stigmergic information and maintain efficient Search and Rescue operations in network-constrained environments. Indeed, comparable performance is achieved between the two map-sharing configurations, despite the distributed approach requiring less than a tenth of the network bandwidth
 
+\clearpage
 % ---------------------------------------------------------
 \section{Discussion and Conclusion}
 \label{sec:conclusion}
@@ -490,6 +492,7 @@ Future work must focus on further narrowing the sim-to-real gap. While the curre
 
 
 
+\clearpage
 % ---------------------------------------------------------
 % BIBLIOGRAPHY
 % ---------------------------------------------------------
